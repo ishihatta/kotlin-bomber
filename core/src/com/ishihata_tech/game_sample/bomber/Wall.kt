@@ -1,0 +1,60 @@
+package com.ishihata_tech.game_sample.bomber
+
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.math.MathUtils
+
+class Wall(
+        gameScene: GameScene,
+        x: Int,
+        y: Int,
+        val isBreakable: Boolean)
+    : LightSprite(gameScene, x, y) {
+
+    companion object {
+        private const val TIME_TO_MELT = 30
+    }
+
+    private val texture =
+            if (isBreakable) gameScene.breakableWallImage
+            else gameScene.wallImage
+
+    /**
+     * 破壊可能な壁が破壊されている途中の状態（1～TIME_TO_MELT）
+     */
+    private var meltState = 0
+
+    override fun draw(batch: SpriteBatch) {
+        if (meltState > 0) {
+            val prevColor = Color(batch.color)
+            batch.setColor(1f, 0f, 0f, 1f - meltState.toFloat() / TIME_TO_MELT)
+            batch.draw(texture, x.toFloat(), y.toFloat())
+            batch.color = prevColor
+        } else {
+            batch.draw(texture, x.toFloat(), y.toFloat())
+        }
+    }
+
+    override fun onNextFrame(): Boolean {
+        if (meltState > 0) {
+            meltState++
+            if (meltState >= TIME_TO_MELT) {
+                // 一定の確率でパワーアップアイテムが出る
+                if (MathUtils.random(100) < 10) {
+                    gameScene.powerUpItems.add(PowerUpItem(gameScene, x, y))
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * 破壊を開始する
+     */
+    fun startMelting() {
+        if (meltState == 0) {
+            meltState = 1
+        }
+    }
+}
