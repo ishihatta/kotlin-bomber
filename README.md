@@ -8,6 +8,10 @@ Kotlin で書いた簡単な対戦2Dアクションゲームです。Windows, Ma
 * 爆弾は無限に置ける
 * 死んだら負け
 
+# プレイ動画
+
+![プレイ動画](video/play_movie.mp4)
+
 # ビルド方法
 
 ```shell
