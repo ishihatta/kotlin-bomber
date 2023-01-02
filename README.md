@@ -10,7 +10,7 @@ Kotlin で書いた簡単な対戦2Dアクションゲームです。Windows, Ma
 
 # プレイ動画
 
-![プレイ動画](video/play_movie.mp4)
+https://user-images.githubusercontent.com/40629744/210214223-5026a6b1-8405-493b-9c45-cc59f73d4bcb.mp4
 
 # ビルド方法
 
