@@ -14,9 +14,15 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.ScreenUtils
+import com.ishihata_tech.game_sample.bomber.ai.AIPlayer
 import kotlin.math.absoluteValue
 
 class GameScene : Disposable {
+    companion object {
+        const val MAP_WIDTH = 25
+        const val MAP_HEIGHT = 15
+    }
+
     /**
      * ゲーム状態
      */
@@ -63,9 +69,6 @@ class GameScene : Disposable {
     val explosions = Array<Explosion>()
     val powerUpItems = Array<PowerUpItem>()
 
-    // 爆発を一時的に生成するための配列
-    val newExplosions = Array<Explosion>()
-
     // カメラ
     private val camera = OrthographicCamera().apply {
         setToOrtho(false, 800f, 480f)
@@ -93,33 +96,35 @@ class GameScene : Disposable {
 
         // Playerの生成
         players.clear()
-        players.add(Player(this, 0, Constants.CHARACTER_SIZE, 480 - Constants.CHARACTER_SIZE * 2))
-        players.add(Player(this, 1, 800 - Constants.CHARACTER_SIZE * 2, Constants.CHARACTER_SIZE))
+        players.add(Player(this, 0, AIPlayer(this, 0), Constants.CHARACTER_SIZE, 480 - Constants.CHARACTER_SIZE * 2))
+        //players.add(Player(this, 0, UserPlayerOperation(0), Constants.CHARACTER_SIZE, 480 - Constants.CHARACTER_SIZE * 2))
+        players.add(Player(this, 1, AIPlayer(this, 1), 800 - Constants.CHARACTER_SIZE * 2, Constants.CHARACTER_SIZE))
+        //players.add(Player(this, 1, UserPlayerOperation(1), 800 - Constants.CHARACTER_SIZE * 2, Constants.CHARACTER_SIZE))
 
         // 外壁の生成
         walls.clear()
-        for (x in 0..24) {
+        for (x in 0 until MAP_WIDTH) {
             val xf = x * Constants.CHARACTER_SIZE
             walls.add(Wall(this, xf, 0, false))
             walls.add(Wall(this, xf, 14 * Constants.CHARACTER_SIZE, false))
         }
-        for (y in 1..13) {
+        for (y in 1 until MAP_HEIGHT - 1) {
             val yf = y * Constants.CHARACTER_SIZE
             walls.add(Wall(this, 0, yf, false))
             walls.add(Wall(this, 24 * Constants.CHARACTER_SIZE, yf, false))
         }
 
         // 壁の生成
-        for (y in 1..13) {
+        for (y in 1 until MAP_HEIGHT - 1) {
             val yf = y * Constants.CHARACTER_SIZE
-            for (x in 1..23) {
+            for (x in 1 until MAP_WIDTH - 1) {
                 val xf = x * Constants.CHARACTER_SIZE
                 if (x % 2 == 0 && y % 2 == 0) {
                     // 壊せない壁
                     walls.add(Wall(this, xf, yf, false))
                 } else {
                     // 壊せる壁
-                    if (x < 3 && y > 11 || x > 21 && y < 3) {
+                    if (x < 3 && y > MAP_HEIGHT - 4 || x > MAP_WIDTH - 4 && y < 3) {
                         // プレイヤー出現位置の近くには壁は作らない
                     } else if (MathUtils.random(100) < 50) {
                         walls.add(Wall(this, xf, yf, true))
@@ -132,7 +137,6 @@ class GameScene : Disposable {
         bombs.clear()
         explosions.clear()
         powerUpItems.clear()
-        newExplosions.clear()
 
         // 効果音の初期化
         explosionSound.stop()
@@ -188,8 +192,8 @@ class GameScene : Disposable {
         // プレイヤー同士の衝突回避
         playersCollisionDetect()
 
-        // プレイヤー、パワーアップアイテム、壁、爆発, 爆弾の状態変化
-        arrayOf(players, powerUpItems, walls, explosions, bombs).forEach {
+        // プレイヤー、パワーアップアイテム、壁、爆発の状態変化
+        arrayOf(players, powerUpItems, walls, explosions).forEach {
             val iterator = it.iterator()
             while (iterator.hasNext()) {
                 if (iterator.next().onNextFrame()) {
@@ -198,9 +202,31 @@ class GameScene : Disposable {
             }
         }
 
-        // 新たに生成された爆発を追加する
-        explosions.addAll(newExplosions)
-        newExplosions.clear()
+        // 爆弾の状態変化
+        val newExplodeBomb = Array<Bomb>()
+        bombs.iterator().also { iterator ->
+            while (iterator.hasNext()) {
+                val bomb = iterator.next()
+                if (bomb.onNextFrame()) {
+                    // 爆発した
+                    iterator.remove()
+                    // 爆発した爆弾をリストに入れておく
+                    newExplodeBomb.add(bomb)
+                }
+            }
+        }
+
+        // 爆発の生成
+        if (!newExplodeBomb.isEmpty) {
+            explosionSound.play()
+            newExplodeBomb.forEach { bomb ->
+                explosions.add(Explosion(this, bomb.x, bomb.y, Explosion.Position.CENTER))
+                expandExplosion(bomb, -1, 0)
+                expandExplosion(bomb, 1, 0)
+                expandExplosion(bomb, 0, -1)
+                expandExplosion(bomb, 0, 1)
+            }
+        }
 
         // ゲーム状態の変化
         if (state == State.PLAYING) {
@@ -242,6 +268,52 @@ class GameScene : Disposable {
                 players[0].popPosition()
                 players[1].popPosition()
             }
+        }
+    }
+
+    /**
+     * 指定した爆弾位置から指定した方向に爆発を生成する
+     */
+    private fun expandExplosion(bomb: Bomb, xx: Int, yy: Int) {
+        for (n in 1..bomb.power) {
+            val px = bomb.x + xx * n * Constants.CHARACTER_SIZE
+            val py = bomb.y + yy * n * Constants.CHARACTER_SIZE
+
+            // 壁があるか？
+            walls.find { it.x == px && it.y == py }?.also { wall ->
+                // 壁の破壊
+                if (wall.isBreakable) {
+                    wall.startMelting()
+                }
+                return
+            }
+            // 爆弾があったら誘爆する
+            val bombIndex = bombs.indexOfFirst { it.x == px && it.y == py }
+            if (bombIndex >= 0) {
+                bombs[bombIndex].remainTime = 1
+                return
+            }
+            // パワーアップアイテムがあったら破壊する
+            val powerUpItemIndex = powerUpItems.indexOfFirst { it.x == px && it.y == py }
+            if (powerUpItemIndex >= 0) {
+                powerUpItems.removeIndex(powerUpItemIndex)
+                return
+            }
+            // 新しい爆発を生成する
+            val position: Explosion.Position = if (xx == 0) {
+                if (n == bomb.power) {
+                    if (yy > 0f) Explosion.Position.TOP else Explosion.Position.BOTTOM
+                } else {
+                    Explosion.Position.VERTICAL
+                }
+            } else {
+                if (n == bomb.power) {
+                    if (xx > 0f) Explosion.Position.RIGHT else Explosion.Position.LEFT
+                } else {
+                    Explosion.Position.HORIZONTAL
+                }
+            }
+            explosions.add(Explosion(this, px, py, position))
         }
     }
 

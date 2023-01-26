@@ -24,6 +24,12 @@ class Wall(
      */
     private var meltState = 0
 
+    /**
+     * 破壊中の場合 true
+     */
+    val isMelting: Boolean
+        get() = meltState > 0
+
     override fun draw(batch: SpriteBatch) {
         if (meltState > 0) {
             val prevColor = Color(batch.color)

@@ -1,7 +1,6 @@
 package com.ishihata_tech.game_sample.bomber
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import kotlin.math.absoluteValue
@@ -9,17 +8,13 @@ import kotlin.math.absoluteValue
 class Player(
         gameScene: GameScene,
         playerNumber: Int,
+        private val playerOperation: PlayerOperation,
         x: Int,
         y: Int,
 ): LightSprite(gameScene, x, y) {
     companion object {
         private const val WALK_SPEED = 2
         private const val TIME_TO_DEATH = 60
-
-        private val KEY_ASSIGN = arrayOf(
-                KeyAssign(Input.Keys.A, Input.Keys.W, Input.Keys.D, Input.Keys.S, Input.Keys.NUM_1),
-                KeyAssign(Input.Keys.LEFT, Input.Keys.UP, Input.Keys.RIGHT, Input.Keys.DOWN, Input.Keys.SLASH)
-        )
     }
 
     enum class Direction(val position: Int) {
@@ -29,9 +24,6 @@ class Player(
         UP(3),
     }
 
-    private class KeyAssign(val left: Int, val up: Int, val right: Int, val down: Int, val fire: Int)
-    private val keyAssign = KEY_ASSIGN[playerNumber]
-
     private val playerImage = if (playerNumber == 0) gameScene.player1Image else gameScene.player2Image
 
     var pushedX = 0
@@ -40,6 +32,7 @@ class Player(
     private var direction = Direction.DOWN
     private var moveTime = 0f
     var power = 1
+    private var playerInput: PlayerOperation.PlayerInput? = null
     private var walkSoundIsPlaying = false
     private var walkSoundId = 0L
     private var deathState = 0
@@ -93,21 +86,25 @@ class Player(
         val oldX = x
         val oldY = y
 
-        if (Gdx.input.isKeyPressed(keyAssign.left)) {
-            direction = Direction.LEFT
-            x -= WALK_SPEED
-        }
-        else if (Gdx.input.isKeyPressed(keyAssign.right)) {
-            direction = Direction.RIGHT
-            x += WALK_SPEED
-        }
-        else if (Gdx.input.isKeyPressed(keyAssign.up)) {
-            direction = Direction.UP
-            y += WALK_SPEED
-        }
-        else if (Gdx.input.isKeyPressed(keyAssign.down)) {
-            direction = Direction.DOWN
-            y -= WALK_SPEED
+        playerInput = playerOperation.playerInput
+        when (playerInput?.move) {
+            PlayerOperation.Move.LEFT -> {
+                direction = Direction.LEFT
+                x -= WALK_SPEED
+            }
+            PlayerOperation.Move.RIGHT -> {
+                direction = Direction.RIGHT
+                x += WALK_SPEED
+            }
+            PlayerOperation.Move.UP -> {
+                direction = Direction.UP
+                y += WALK_SPEED
+            }
+            PlayerOperation.Move.DOWN -> {
+                direction = Direction.DOWN
+                y -= WALK_SPEED
+            }
+            else -> Unit
         }
 
         // 壁との当たり判定
@@ -120,13 +117,13 @@ class Player(
         }
         if (detectWalls.count() == 1) {
             val wall = detectWalls.first()
-            if (Gdx.input.isKeyPressed(keyAssign.left) ||
-                    Gdx.input.isKeyPressed(keyAssign.right)) {
+            if (playerInput?.move == PlayerOperation.Move.LEFT ||
+                    playerInput?.move == PlayerOperation.Move.RIGHT) {
                 if (y < wall.y) y -= WALK_SPEED
                 if (y > wall.y) y += WALK_SPEED
             }
-            else if (Gdx.input.isKeyPressed(keyAssign.up) ||
-                    Gdx.input.isKeyPressed(keyAssign.down)) {
+            else if (playerInput?.move == PlayerOperation.Move.UP ||
+                    playerInput?.move == PlayerOperation.Move.DOWN) {
                 if (x < wall.x) x -= WALK_SPEED
                 if (x > wall.x) x += WALK_SPEED
             }
@@ -202,7 +199,7 @@ class Player(
         }
 
         // 爆弾の設置
-        if (Gdx.input.isKeyPressed(keyAssign.fire)) {
+        if (playerInput?.fire == true) {
             val bx = (x + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE * Constants.CHARACTER_SIZE
             val by = (y + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE * Constants.CHARACTER_SIZE
             if (!gameScene.bombs.any { it.x == bx && it.y == by }) {
