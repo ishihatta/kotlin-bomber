@@ -3,6 +3,8 @@ package com.ishihata_tech.game_sample.bomber.ai
 import com.ishihata_tech.game_sample.bomber.Bomb
 import com.ishihata_tech.game_sample.bomber.Constants
 import com.ishihata_tech.game_sample.bomber.GameScene
+import com.ishihata_tech.game_sample.bomber.ai.AIConstants.RISK_OF_BOMB
+import com.ishihata_tech.game_sample.bomber.ai.AIConstants.RISK_OF_EXPLOSION
 
 class Field {
     private val elements: Array<FieldElement>
@@ -44,7 +46,7 @@ class Field {
         gameScene.explosions.forEach {
             val x = it.x / Constants.CHARACTER_SIZE
             val y = it.y / Constants.CHARACTER_SIZE
-            getElement(x, y).risk = 200
+            getElement(x, y).risk = RISK_OF_EXPLOSION
         }
     }
 
@@ -87,8 +89,8 @@ class Field {
         val y = bomb.y / Constants.CHARACTER_SIZE
         val element = getElement(x, y)
         element.fieldObject = FieldElement.FieldObject.BOMB
-        // この爆弾のリスク（最大100）
-        val risk = (Constants.BOMB_TIME - bomb.remainTime) * 90 / Constants.BOMB_TIME + 10
+        // この爆弾のリスク
+        val risk = (Constants.BOMB_TIME - bomb.remainTime) * (RISK_OF_BOMB * 9 / 10) / Constants.BOMB_TIME + (RISK_OF_BOMB / 10)
         // リスクのセット
         element.risk = risk
         val breakCount = arrayOf(Pair(-1, 0), Pair(1, 0), Pair(0, -1), Pair(0, 1)).count {

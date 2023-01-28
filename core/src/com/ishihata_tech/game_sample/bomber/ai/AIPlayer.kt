@@ -4,6 +4,10 @@ import com.ishihata_tech.game_sample.bomber.Bomb
 import com.ishihata_tech.game_sample.bomber.Constants
 import com.ishihata_tech.game_sample.bomber.GameScene
 import com.ishihata_tech.game_sample.bomber.PlayerOperation
+import com.ishihata_tech.game_sample.bomber.ai.AIConstants.RISK_OF_BOMB
+import com.ishihata_tech.game_sample.bomber.ai.AIConstants.SCORE_OF_BREAK_WALL
+import com.ishihata_tech.game_sample.bomber.ai.AIConstants.SCORE_OF_DISTANCE
+import com.ishihata_tech.game_sample.bomber.ai.AIConstants.SCORE_OF_POWER_UP_ITEM
 
 class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int): PlayerOperation {
     override val playerInput: PlayerOperation.PlayerInput
@@ -32,11 +36,11 @@ class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int):
             val distance = field.getElement(x, y).distance
 
             // この場所のスコアと爆弾設置の可否を計算する
-            var score = -fieldElement.risk - distance
+            var score = -fieldElement.risk - distance * SCORE_OF_DISTANCE
             var fire = false
             // パワーアップアイテムがある場所には行きたい！
             if (fieldElement.fieldObject == FieldElement.FieldObject.POWER_UP_ITEM) {
-                score += 100
+                score += SCORE_OF_POWER_UP_ITEM
             }
             // この場所に爆弾を置いて得られるメリットを計算する
             if (fieldElement.fieldObject != FieldElement.FieldObject.BOMB) {
@@ -47,7 +51,7 @@ class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int):
                 // 逃げ場があるか確認する
                 if (fieldIfBombSet.checkIfEscapable(x, y)) {
                     if (breakCount > 0) {
-                        score += breakCount * 6
+                        score += breakCount * SCORE_OF_BREAK_WALL
                         fire = true
                     }
                 }
@@ -64,7 +68,7 @@ class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int):
                 // 通れない場所には行けない
                 if (!nextElement.isPassable) return@forEach
                 // この場所のリスクが高すぎる場合はここには行かない
-                if (nextElement.risk > 90 && nextElement.risk > fieldElement.risk) return@forEach
+                if (nextElement.risk > RISK_OF_BOMB * 9 / 10 && nextElement.risk > fieldElement.risk) return@forEach
                 // この場所にたどり着くまでのコストを計算し、すでにそれより低いコストで移動できる経路が計算済みなら何もしない
                 val cost = fieldElement.cost + nextElement.risk
                 if (cost >= nextElement.cost) return@forEach
