@@ -6,7 +6,7 @@ class Game : ApplicationAdapter() {
     private var gameScene: GameScene? = null
 
     override fun create() {
-        gameScene = GameScene()
+        gameScene = GameScene(GameScene.PlayerType.AI, GameScene.PlayerType.AI)
     }
 
     override fun render() {

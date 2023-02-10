@@ -17,10 +17,28 @@ import com.badlogic.gdx.utils.ScreenUtils
 import com.ishihata_tech.game_sample.bomber.ai.AIPlayer
 import kotlin.math.absoluteValue
 
-class GameScene : Disposable {
+class GameScene(private val playerType1: PlayerType, private val playerType2: PlayerType) : Disposable {
     companion object {
         const val MAP_WIDTH = 25
         const val MAP_HEIGHT = 15
+    }
+
+    /**
+     * プレイヤータイプ（人間かAIか）
+     */
+    enum class PlayerType {
+        HUMAN {
+            override fun generatePlayerOperation(gameScene: GameScene, playerNumber: Int): PlayerOperation {
+                return UserPlayerOperation(0)
+            }
+        },
+        AI {
+            override fun generatePlayerOperation(gameScene: GameScene, playerNumber: Int): PlayerOperation {
+                return AIPlayer(gameScene, playerNumber)
+            }
+        };
+
+        abstract fun generatePlayerOperation(gameScene: GameScene, playerNumber: Int): PlayerOperation
     }
 
     /**
@@ -96,10 +114,20 @@ class GameScene : Disposable {
 
         // Playerの生成
         players.clear()
-        players.add(Player(this, 0, AIPlayer(this, 0), Constants.CHARACTER_SIZE, 480 - Constants.CHARACTER_SIZE * 2))
-        //players.add(Player(this, 0, UserPlayerOperation(0), Constants.CHARACTER_SIZE, 480 - Constants.CHARACTER_SIZE * 2))
-        players.add(Player(this, 1, AIPlayer(this, 1), 800 - Constants.CHARACTER_SIZE * 2, Constants.CHARACTER_SIZE))
-        //players.add(Player(this, 1, UserPlayerOperation(1), 800 - Constants.CHARACTER_SIZE * 2, Constants.CHARACTER_SIZE))
+        players.add(Player(
+                this,
+                0,
+                playerType1.generatePlayerOperation(this, 0),
+                Constants.CHARACTER_SIZE,
+                480 - Constants.CHARACTER_SIZE * 2
+        ))
+        players.add(Player(
+                this,
+                1,
+                playerType2.generatePlayerOperation(this, 1),
+                800 - Constants.CHARACTER_SIZE * 2,
+                Constants.CHARACTER_SIZE
+        ))
 
         // 外壁の生成
         walls.clear()

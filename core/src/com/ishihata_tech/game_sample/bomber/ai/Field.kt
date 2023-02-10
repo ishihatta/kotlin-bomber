@@ -66,7 +66,7 @@ class Field {
             val element = searchQueue.removeFirst()
             val ex = element.x
             val ey = element.y
-            arrayOf(getElement(ex - 1, ey), getElement(ex + 1, ey),getElement(ex, ey - 1),getElement(ex, ey + 1)).forEach {
+            arrayOf(getElement(ex - 1, ey), getElement(ex + 1, ey), getElement(ex, ey - 1), getElement(ex, ey + 1)).forEach {
                 val idx = it.x + it.y * GameScene.MAP_WIDTH
                 if (!checked[idx] && it.isPassable) {
                     if (it.risk == 0) return true
