@@ -1,12 +1,12 @@
-package com.ishihata_tech.game_sample.bomber
+package com.ishihata_tech.game_sample.bomber.game_screen
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-class Explosion(gameScene: GameScene,
+class Explosion(gameScreen: GameScreen,
                 x: Int,
                 y: Int,
                 private val position: Position,
-) : LightSprite(gameScene, x, y) {
+) : LightSprite(gameScreen, x, y) {
 
     companion object {
         const val TIME_TO_LIVE = 30
@@ -26,7 +26,7 @@ class Explosion(gameScene: GameScene,
 
     override fun draw(batch: SpriteBatch) {
         val srcX = if (remainTime < 3 || remainTime > TIME_TO_LIVE - 3) Constants.CHARACTER_SIZE else 0
-        batch.draw(gameScene.explosionImage, x.toFloat(), y.toFloat(), srcX, position.srcY, width, height)
+        batch.draw(gameScreen.explosionImage, x.toFloat(), y.toFloat(), srcX, position.srcY, width, height)
     }
 
     override fun onNextFrame(): Boolean {

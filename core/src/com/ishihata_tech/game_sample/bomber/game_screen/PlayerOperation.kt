@@ -1,4 +1,4 @@
-package com.ishihata_tech.game_sample.bomber
+package com.ishihata_tech.game_sample.bomber.game_screen
 
 interface PlayerOperation {
     enum class Move {

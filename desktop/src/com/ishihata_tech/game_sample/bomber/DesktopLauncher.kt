@@ -12,5 +12,5 @@ fun main() {
         setMaximized(true)
         useVsync(true)
     }
-    Lwjgl3Application(Game(), config)
+    Lwjgl3Application(MyGame(), config)
 }

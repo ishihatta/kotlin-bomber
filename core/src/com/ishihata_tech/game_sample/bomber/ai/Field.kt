@@ -1,31 +1,31 @@
 package com.ishihata_tech.game_sample.bomber.ai
 
-import com.ishihata_tech.game_sample.bomber.Bomb
-import com.ishihata_tech.game_sample.bomber.Constants
-import com.ishihata_tech.game_sample.bomber.GameScene
 import com.ishihata_tech.game_sample.bomber.ai.AIConstants.RISK_OF_BOMB
 import com.ishihata_tech.game_sample.bomber.ai.AIConstants.RISK_OF_EXPLOSION
+import com.ishihata_tech.game_sample.bomber.game_screen.Bomb
+import com.ishihata_tech.game_sample.bomber.game_screen.Constants
+import com.ishihata_tech.game_sample.bomber.game_screen.GameScreen
 
 class Field {
     private val elements: Array<FieldElement>
 
     constructor() {
-        elements = Array(GameScene.MAP_WIDTH * GameScene.MAP_HEIGHT) {
-            val x = it % GameScene.MAP_WIDTH
-            val y = it / GameScene.MAP_WIDTH
+        elements = Array(GameScreen.MAP_WIDTH * GameScreen.MAP_HEIGHT) {
+            val x = it % GameScreen.MAP_WIDTH
+            val y = it / GameScreen.MAP_WIDTH
             FieldElement(x = x, y = y)
         }
     }
 
     constructor(src: Field) {
-        elements = Array(GameScene.MAP_WIDTH * GameScene.MAP_HEIGHT) {
+        elements = Array(GameScreen.MAP_WIDTH * GameScreen.MAP_HEIGHT) {
             src.elements[it].copy()
          }
     }
 
-    constructor(gameScene: GameScene) : this() {
+    constructor(gameScreen: GameScreen) : this() {
         // 壁をマップに追加
-        gameScene.walls.forEach {
+        gameScreen.walls.forEach {
             val x = it.x / Constants.CHARACTER_SIZE
             val y = it.y / Constants.CHARACTER_SIZE
             getElement(x, y).apply {
@@ -35,15 +35,15 @@ class Field {
             }
         }
         // パワーアップアイテムをマップに追加
-        gameScene.powerUpItems.forEach {
+        gameScreen.powerUpItems.forEach {
             val x = it.x / Constants.CHARACTER_SIZE
             val y = it.y / Constants.CHARACTER_SIZE
             getElement(x, y).fieldObject = FieldElement.FieldObject.POWER_UP_ITEM
         }
         // 爆弾をマップに追加
-        gameScene.bombs.forEach(::addBomb)
+        gameScreen.bombs.forEach(::addBomb)
         // 爆発を危険領域としてマップに追加
-        gameScene.explosions.forEach {
+        gameScreen.explosions.forEach {
             val x = it.x / Constants.CHARACTER_SIZE
             val y = it.y / Constants.CHARACTER_SIZE
             getElement(x, y).risk = RISK_OF_EXPLOSION
@@ -51,23 +51,23 @@ class Field {
     }
 
     fun getElement(x: Int, y: Int): FieldElement {
-        return elements[y * GameScene.MAP_WIDTH + x]
+        return elements[y * GameScreen.MAP_WIDTH + x]
     }
 
     /**
      * 指定位置からリスクのない場所へ移動できるか確認する
      */
     fun checkIfEscapable(x: Int, y: Int): Boolean {
-        val checked = BooleanArray(GameScene.MAP_WIDTH * GameScene.MAP_HEIGHT)
+        val checked = BooleanArray(GameScreen.MAP_WIDTH * GameScreen.MAP_HEIGHT)
         val searchQueue = ArrayDeque<FieldElement>()
         searchQueue.addLast(getElement(x, y))
-        checked[x + y * GameScene.MAP_WIDTH] = true
+        checked[x + y * GameScreen.MAP_WIDTH] = true
         while (searchQueue.isNotEmpty()) {
             val element = searchQueue.removeFirst()
             val ex = element.x
             val ey = element.y
             arrayOf(getElement(ex - 1, ey), getElement(ex + 1, ey), getElement(ex, ey - 1), getElement(ex, ey + 1)).forEach {
-                val idx = it.x + it.y * GameScene.MAP_WIDTH
+                val idx = it.x + it.y * GameScreen.MAP_WIDTH
                 if (!checked[idx] && it.isPassable) {
                     if (it.risk == 0) return true
                     searchQueue.addLast(it)

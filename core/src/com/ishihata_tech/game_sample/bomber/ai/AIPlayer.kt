@@ -1,34 +1,34 @@
 package com.ishihata_tech.game_sample.bomber.ai
 
-import com.ishihata_tech.game_sample.bomber.Bomb
-import com.ishihata_tech.game_sample.bomber.Constants
-import com.ishihata_tech.game_sample.bomber.GameScene
-import com.ishihata_tech.game_sample.bomber.PlayerOperation
 import com.ishihata_tech.game_sample.bomber.ai.AIConstants.RISK_OF_BOMB
 import com.ishihata_tech.game_sample.bomber.ai.AIConstants.SCORE_OF_BREAK_WALL
 import com.ishihata_tech.game_sample.bomber.ai.AIConstants.SCORE_OF_DISTANCE
 import com.ishihata_tech.game_sample.bomber.ai.AIConstants.SCORE_OF_POWER_UP_ITEM
+import com.ishihata_tech.game_sample.bomber.game_screen.Bomb
+import com.ishihata_tech.game_sample.bomber.game_screen.Constants
+import com.ishihata_tech.game_sample.bomber.game_screen.GameScreen
+import com.ishihata_tech.game_sample.bomber.game_screen.PlayerOperation
 import kotlin.math.absoluteValue
 
-class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int): PlayerOperation {
+class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int): PlayerOperation {
     override val playerInput: PlayerOperation.PlayerInput
         get() = operatePlayer()
 
     private fun operatePlayer(): PlayerOperation.PlayerInput {
         // 相手プレイヤーの座標
-        val opponentPlayer = gameScene.players[1 - playerNumber]
+        val opponentPlayer = gameScreen.players[1 - playerNumber]
         val opponentX = (opponentPlayer.x + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE
         val opponentY = (opponentPlayer.y + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE
 
         // マップを作成する
-        val field = Field(gameScene)
+        val field = Field(gameScreen)
 
         // 現在の対戦相手のストレス
         val opponentStress = calcOpponentStress(field, opponentX, opponentY)
 
         // 広さ優先で自キャラの位置から探索
         val searchQueue = ArrayDeque<FieldElement>()
-        val player = gameScene.players[playerNumber]
+        val player = gameScreen.players[playerNumber]
         val myX = (player.x + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE
         val myY = (player.y + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE
         val myElement = field.getElement(myX, myY)
@@ -59,7 +59,7 @@ class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int):
                 // 爆弾が置かれた状態を再現する
                 val fieldIfBombSet = Field(field)
                 // この爆弾で破壊できる壁の数
-                val breakCount = fieldIfBombSet.addBomb(Bomb(gameScene, x * Constants.CHARACTER_SIZE, y * Constants.CHARACTER_SIZE, player.power))
+                val breakCount = fieldIfBombSet.addBomb(Bomb(gameScreen, x * Constants.CHARACTER_SIZE, y * Constants.CHARACTER_SIZE, player.power))
                 // 逃げ場があるか確認する
                 if (fieldIfBombSet.checkIfEscapable(x, y)) {
                     // 破壊できる壁があればスコア加算
@@ -132,10 +132,10 @@ class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int):
      */
     private fun calcOpponentStress(field: Field, opponentX: Int, opponentY: Int): Int {
         // 到達可能で、かつ距離が5以下の場所を探索する
-        val checked = BooleanArray(GameScene.MAP_WIDTH * GameScene.MAP_HEIGHT)
+        val checked = BooleanArray(GameScreen.MAP_WIDTH * GameScreen.MAP_HEIGHT)
         val searchQueue = ArrayDeque<FieldElement>()
         searchQueue.addLast(field.getElement(opponentX, opponentY))
-        checked[opponentX + opponentY * GameScene.MAP_WIDTH] = true
+        checked[opponentX + opponentY * GameScreen.MAP_WIDTH] = true
         // 移動可能な範囲
         var movableSpace = 0
         // 危険な範囲
@@ -154,7 +154,7 @@ class AIPlayer(private val gameScene: GameScene, private val playerNumber: Int):
                     field.getElement(ex, ey - 1),
                     field.getElement(ex, ey + 1)
             ).forEach {
-                val idx = it.x + it.y * GameScene.MAP_WIDTH
+                val idx = it.x + it.y * GameScreen.MAP_WIDTH
                 val distance = (opponentX - it.x).absoluteValue + (opponentY - it.y).absoluteValue
                 if (distance <= 5 && !checked[idx] && it.isPassable) {
                     searchQueue.addLast(it)

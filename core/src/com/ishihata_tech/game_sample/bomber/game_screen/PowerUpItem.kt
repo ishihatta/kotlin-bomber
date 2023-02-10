@@ -1,22 +1,20 @@
-package com.ishihata_tech.game_sample.bomber
+package com.ishihata_tech.game_sample.bomber.game_screen
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
-class Bomb(
-        gameScene: GameScene,
+class PowerUpItem(
+        gameScreen: GameScreen,
         x: Int,
-        y: Int,
-        val power: Int)
-    : LightSprite(gameScene, x, y) {
+        y: Int)
+    : LightSprite(gameScreen, x, y) {
 
     private var moveTime = 0f
-    var remainTime = Constants.BOMB_TIME
 
     override fun draw(batch: SpriteBatch) {
         val step = (moveTime / 0.2f).toInt() % 3
         batch.draw(
-                gameScene.bombImage,
+                gameScreen.powerUpImage,
                 x.toFloat(),
                 y.toFloat(),
                 step * width,
@@ -27,9 +25,6 @@ class Bomb(
 
     override fun onNextFrame(): Boolean {
         moveTime += Gdx.graphics.deltaTime
-
-        // タイムアウトしたら爆発する
-        remainTime--
-        return remainTime <= 0
+        return false
     }
 }

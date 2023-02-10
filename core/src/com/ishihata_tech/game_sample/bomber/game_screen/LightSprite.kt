@@ -1,9 +1,9 @@
-package com.ishihata_tech.game_sample.bomber
+package com.ishihata_tech.game_sample.bomber.game_screen
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 
 open class LightSprite(
-        val gameScene: GameScene,
+        val gameScreen: GameScreen,
         var x: Int = 0,
         var y: Int = 0,
         var width: Int = Constants.CHARACTER_SIZE,

@@ -1,4 +1,4 @@
-package com.ishihata_tech.game_sample.bomber
+package com.ishihata_tech.game_sample.bomber.game_screen
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -6,12 +6,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import kotlin.math.absoluteValue
 
 class Player(
-        gameScene: GameScene,
+        gameScreen: GameScreen,
         playerNumber: Int,
         private val playerOperation: PlayerOperation,
         x: Int,
         y: Int,
-): LightSprite(gameScene, x, y) {
+): LightSprite(gameScreen, x, y) {
     companion object {
         private const val WALK_SPEED = 2
         private const val TIME_TO_DEATH = 60
@@ -24,7 +24,7 @@ class Player(
         UP(3),
     }
 
-    private val playerImage = if (playerNumber == 0) gameScene.player1Image else gameScene.player2Image
+    private val playerImage = if (playerNumber == 0) gameScreen.player1Image else gameScreen.player2Image
 
     var pushedX = 0
     var pushedY = 0
@@ -108,7 +108,7 @@ class Player(
         }
 
         // 壁との当たり判定
-        val detectWalls = gameScene.walls.filter {
+        val detectWalls = gameScreen.walls.filter {
             (it.x - x).absoluteValue < Constants.CHARACTER_SIZE && (it.y - y).absoluteValue < Constants.CHARACTER_SIZE
         }.toList()
         if (detectWalls.isNotEmpty()) {
@@ -133,10 +133,10 @@ class Player(
         // 32で割り切れる場所からそうでない場所に移動しようとした場合は、移動先に爆弾があったら動かさない
         if (x != oldX && oldX % Constants.CHARACTER_SIZE == 0) {
             val bx = if (x > oldX) oldX + Constants.CHARACTER_SIZE else oldX - Constants.CHARACTER_SIZE
-            if (gameScene.bombs.any { it.x == bx && it.y == y }) x = oldX
+            if (gameScreen.bombs.any { it.x == bx && it.y == y }) x = oldX
         } else if (y != oldY && oldY % Constants.CHARACTER_SIZE == 0) {
             val by = if (y > oldY) oldY + Constants.CHARACTER_SIZE else oldY - Constants.CHARACTER_SIZE
-            if (gameScene.bombs.any { it.y == by && it.x == x }) y = oldY
+            if (gameScreen.bombs.any { it.y == by && it.x == x }) y = oldY
         }
         // 32で割り切れない場所から移動しようとした場合は、一番近いマス以外のマスに移動しようとしている場合、移動先に爆弾があったら動かさない
         else if (x != oldX) {
@@ -150,7 +150,7 @@ class Player(
                     bx = (oldX / Constants.CHARACTER_SIZE) * Constants.CHARACTER_SIZE
                 }
             }
-            if (bx != null && gameScene.bombs.any { it.x == bx && it.y == y }) x = oldX
+            if (bx != null && gameScreen.bombs.any { it.x == bx && it.y == y }) x = oldX
         } else if (y != oldY) {
             var by: Int? = null
             if (oldY % Constants.CHARACTER_SIZE < Constants.CHARACTER_SIZE / 2) {
@@ -162,7 +162,7 @@ class Player(
                     by = (oldY / Constants.CHARACTER_SIZE) * Constants.CHARACTER_SIZE
                 }
             }
-            if (by != null && gameScene.bombs.any { it.x == x && it.y == by }) y = oldY
+            if (by != null && gameScreen.bombs.any { it.x == x && it.y == by }) y = oldY
         }
 
         // 実際に移動させる
@@ -170,12 +170,12 @@ class Player(
             moveTime += Gdx.graphics.deltaTime
             if (!walkSoundIsPlaying) {
                 walkSoundIsPlaying = true
-                walkSoundId = gameScene.walkSound.loop()
+                walkSoundId = gameScreen.walkSound.loop()
             }
         } else {
             if (walkSoundIsPlaying) {
                 walkSoundIsPlaying = false
-                gameScene.walkSound.stop(walkSoundId)
+                gameScreen.walkSound.stop(walkSoundId)
             }
         }
     }
@@ -187,14 +187,14 @@ class Player(
         }
 
         // パワーアップアイテムとの当たり判定
-        val powerUpItemIterator = gameScene.powerUpItems.iterator()
+        val powerUpItemIterator = gameScreen.powerUpItems.iterator()
         while (powerUpItemIterator.hasNext()) {
             val powerUpItem = powerUpItemIterator.next()
             if ((powerUpItem.x - x).absoluteValue < Constants.CHARACTER_SIZE &&
                     (powerUpItem.y - y).absoluteValue < Constants.CHARACTER_SIZE) {
                 powerUpItemIterator.remove()
                 power++
-                gameScene.powerUpSound.play()
+                gameScreen.powerUpSound.play()
             }
         }
 
@@ -202,20 +202,20 @@ class Player(
         if (playerInput?.fire == true) {
             val bx = (x + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE * Constants.CHARACTER_SIZE
             val by = (y + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE * Constants.CHARACTER_SIZE
-            if (!gameScene.bombs.any { it.x == bx && it.y == by }) {
-                gameScene.bombs.add(Bomb(gameScene, bx, by, power))
-                gameScene.setBombSound.play()
+            if (!gameScreen.bombs.any { it.x == bx && it.y == by }) {
+                gameScreen.bombs.add(Bomb(gameScreen, bx, by, power))
+                gameScreen.setBombSound.play()
             }
         }
 
         // 爆発との当たり判定
-        if (gameScene.explosions.any { (it.x - x).absoluteValue < 28 && (it.y - y).absoluteValue < 28 }) {
+        if (gameScreen.explosions.any { (it.x - x).absoluteValue < 28 && (it.y - y).absoluteValue < 28 }) {
             deathState = 1
-            gameScene.bgmMusic.stop()
-            gameScene.crashSound.play()
+            gameScreen.bgmMusic.stop()
+            gameScreen.crashSound.play()
             if (walkSoundIsPlaying) {
                 walkSoundIsPlaying = false
-                gameScene.walkSound.stop(walkSoundId)
+                gameScreen.walkSound.stop(walkSoundId)
             }
         }
 

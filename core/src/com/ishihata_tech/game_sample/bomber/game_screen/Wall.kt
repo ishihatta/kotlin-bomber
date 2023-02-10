@@ -1,23 +1,23 @@
-package com.ishihata_tech.game_sample.bomber
+package com.ishihata_tech.game_sample.bomber.game_screen
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.MathUtils
 
 class Wall(
-        gameScene: GameScene,
+        gameScreen: GameScreen,
         x: Int,
         y: Int,
         val isBreakable: Boolean)
-    : LightSprite(gameScene, x, y) {
+    : LightSprite(gameScreen, x, y) {
 
     companion object {
         private const val TIME_TO_MELT = 30
     }
 
     private val texture =
-            if (isBreakable) gameScene.breakableWallImage
-            else gameScene.wallImage
+            if (isBreakable) gameScreen.breakableWallImage
+            else gameScreen.wallImage
 
     /**
      * 破壊可能な壁が破壊されている途中の状態（1～TIME_TO_MELT）
@@ -47,7 +47,7 @@ class Wall(
             if (meltState >= TIME_TO_MELT) {
                 // 一定の確率でパワーアップアイテムが出る
                 if (MathUtils.random(100) < 10) {
-                    gameScene.powerUpItems.add(PowerUpItem(gameScene, x, y))
+                    gameScreen.powerUpItems.add(PowerUpItem(gameScreen, x, y))
                 }
                 return true
             }

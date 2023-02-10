@@ -3,4 +3,5 @@
 <module>
 	<source path="com/ishihata_tech/game_sample/bomber" />
 	<source path="com/ishihata_tech/game_sample/bomber/ai" />
+	<source path="com/ishihata_tech/game_sample/bomber/main_menu" />
 </module>

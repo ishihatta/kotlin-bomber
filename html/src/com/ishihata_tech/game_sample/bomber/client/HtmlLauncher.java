@@ -5,7 +5,7 @@ import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
 import com.badlogic.gdx.graphics.g2d.freetype.gwt.FreetypeInjector;
 import com.badlogic.gdx.graphics.g2d.freetype.gwt.inject.OnCompletion;
-import com.ishihata_tech.game_sample.bomber.Game;
+import com.ishihata_tech.game_sample.bomber.MyGame;
 
 public class HtmlLauncher extends GwtApplication {
 
@@ -19,7 +19,7 @@ public class HtmlLauncher extends GwtApplication {
 
         @Override
         public ApplicationListener createApplicationListener () {
-                return new Game();
+                return new MyGame();
         }
 
         @Override

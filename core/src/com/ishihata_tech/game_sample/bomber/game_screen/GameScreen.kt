@@ -1,7 +1,8 @@
-package com.ishihata_tech.game_sample.bomber
+package com.ishihata_tech.game_sample.bomber.game_screen
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.OrthographicCamera
@@ -12,33 +13,18 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Array
-import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.ScreenUtils
-import com.ishihata_tech.game_sample.bomber.ai.AIPlayer
+import com.ishihata_tech.game_sample.bomber.MyGame
 import kotlin.math.absoluteValue
 
-class GameScene(private val playerType1: PlayerType, private val playerType2: PlayerType) : Disposable {
+class GameScreen(
+        private val game: MyGame,
+        private val playerType1: PlayerType,
+        private val playerType2: PlayerType,
+) : ScreenAdapter() {
     companion object {
         const val MAP_WIDTH = 25
         const val MAP_HEIGHT = 15
-    }
-
-    /**
-     * プレイヤータイプ（人間かAIか）
-     */
-    enum class PlayerType {
-        HUMAN {
-            override fun generatePlayerOperation(gameScene: GameScene, playerNumber: Int): PlayerOperation {
-                return UserPlayerOperation(0)
-            }
-        },
-        AI {
-            override fun generatePlayerOperation(gameScene: GameScene, playerNumber: Int): PlayerOperation {
-                return AIPlayer(gameScene, playerNumber)
-            }
-        };
-
-        abstract fun generatePlayerOperation(gameScene: GameScene, playerNumber: Int): PlayerOperation
     }
 
     /**
@@ -177,7 +163,7 @@ class GameScene(private val playerType1: PlayerType, private val playerType2: Pl
         bgmMusic.play()
     }
 
-    fun render() {
+    override fun render(delta: Float) {
         ScreenUtils.clear(0f, 0.7f, 0f, 1f)
         camera.update()
         batch.projectionMatrix = camera.combined
@@ -270,6 +256,11 @@ class GameScene(private val playerType1: PlayerType, private val playerType2: Pl
             if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
                 startGame()
             }
+        }
+
+        // メインメニューに戻る
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) {
+            game.returnToMainMenu()
         }
     }
 
