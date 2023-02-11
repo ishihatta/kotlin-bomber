@@ -3,6 +3,7 @@ package com.ishihata_tech.game_sample.bomber.main_menu
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.ScreenAdapter
+import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
@@ -46,8 +47,11 @@ class MainMenuScreen(private val game: MyGame) : ScreenAdapter() {
     private val font16: BitmapFont
     // メニューアイテムのラベル
     private val menuItemLabel: List<Label>
-    // 効果音の読み込み
-    private val setBombSound: Sound = Gdx.audio.newSound(Gdx.files.internal("set_bomb.mp3"))
+
+    // BGM
+    private val bgmMusic: Music = Gdx.audio.newMusic(Gdx.files.internal("title_bgm.mp3"))
+    // ゲーム開始ジングルの読み込み
+    private val startGameSound: Sound = Gdx.audio.newSound(Gdx.files.internal("start_game.mp3"))
 
     // 選択中のアイテムのインデックス
     private var cursor = 0
@@ -81,6 +85,9 @@ class MainMenuScreen(private val game: MyGame) : ScreenAdapter() {
         // カーソル
         cursorImage.setPosition(MENU_ITEM_X - 40, MENU_ITEM_Y_START - MENU_ITEM_Y_STEP * cursor - 8f)
         stage.addActor(cursorImage)
+
+        // BGM再生
+        bgmMusic.play()
     }
 
     override fun render(delta: Float) {
@@ -115,15 +122,28 @@ class MainMenuScreen(private val game: MyGame) : ScreenAdapter() {
             }
 
             // 決定キー
-            if (Gdx.input.isKeyPressed(Input.Keys.SLASH) || Gdx.input.isKeyPressed(Input.Keys.NUM_1)) {
-                setBombSound.play()
+            if (Gdx.input.isKeyPressed(Input.Keys.SLASH) ||
+                    Gdx.input.isKeyPressed(Input.Keys.NUM_1) ||
+                    Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+                // BGM停止
+                bgmMusic.stop()
+                // ジングル再生
+                startGameSound.play(0.5f)
+                // 画面遷移開始
                 isGoingToGameScreen = true
+                val selectedLabel = menuItemLabel[cursor]
                 stage.root.addAction(SequenceAction(
-                    Actions.fadeOut(0.5f),
-                    Actions.run {
-                        val selectedItem = menuItems[cursor]
-                        game.goToGameScreen(selectedItem.playerType1, selectedItem.playerType2)
-                    }
+                        Actions.repeat(12, SequenceAction(
+                                Actions.run { selectedLabel.setColor(0.5f, 0.5f, 0.5f, 1f) },
+                                Actions.delay(0.1f),
+                                Actions.run { selectedLabel.setColor(1f, 0.7f, 0.7f, 1f) },
+                                Actions.delay(0.1f)
+                        )),
+                        Actions.fadeOut(0.3f),
+                        Actions.run {
+                            val selectedItem = menuItems[cursor]
+                            game.goToGameScreen(selectedItem.playerType1, selectedItem.playerType2)
+                        }
                 ))
             }
         }
@@ -133,7 +153,8 @@ class MainMenuScreen(private val game: MyGame) : ScreenAdapter() {
         logoTexture.dispose()
         cursorTexture.dispose()
         font16.dispose()
-        setBombSound.dispose()
+        startGameSound.dispose()
+        bgmMusic.dispose()
         stage.dispose()
     }
 }
