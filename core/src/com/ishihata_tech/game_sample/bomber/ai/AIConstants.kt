@@ -11,4 +11,6 @@ object AIConstants {
     const val RISK_OF_EXPLOSION = 2000
     // 爆弾によっていずれ爆発する場所の最大リスク値
     const val RISK_OF_BOMB = 1000
+    // 対戦相手のストレス度に対するスコアの重み
+    const val OPPONENT_STRESS_WEIGHT = 10
 }

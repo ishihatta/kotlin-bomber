@@ -11,10 +11,30 @@ import com.ishihata_tech.game_sample.bomber.game_screen.PlayerOperation
 import kotlin.math.absoluteValue
 
 class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int): PlayerOperation {
+    // 前フレームでの自分の位置
+    private var previousMyPositionX = 0
+    private var previousMyPositionY = 0
+    // 前フレームで移動しようとした場合は true
+    private var previousWantToMode = false
+    // 対戦相手のストレス度に対するスコアの重みにプラスする値
+    private var opponentStressWeightPlus = 0
+
     override val playerInput: PlayerOperation.PlayerInput
         get() = operatePlayer()
 
     private fun operatePlayer(): PlayerOperation.PlayerInput {
+        val player = gameScreen.players[playerNumber]
+
+        // 前フレームで移動したかったけど移動できなかった場合、対戦相手のストレス度に対するスコアの重みを増やす
+        if (previousWantToMode && previousMyPositionX == player.x && previousMyPositionY == player.y) {
+            opponentStressWeightPlus++
+            println("player=$playerNumber opponentStressWeightPlus=$opponentStressWeightPlus")
+        } else {
+            if (opponentStressWeightPlus > 0) opponentStressWeightPlus--
+        }
+        previousMyPositionX = player.x
+        previousMyPositionY = player.y
+
         // 相手プレイヤーの座標
         val opponentPlayer = gameScreen.players[1 - playerNumber]
         val opponentX = (opponentPlayer.x + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE
@@ -28,7 +48,6 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
 
         // 広さ優先で自キャラの位置から探索
         val searchQueue = ArrayDeque<FieldElement>()
-        val player = gameScreen.players[playerNumber]
         val myX = (player.x + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE
         val myY = (player.y + Constants.CHARACTER_SIZE / 2) / Constants.CHARACTER_SIZE
         val myElement = field.getElement(myX, myY)
@@ -44,9 +63,6 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
             val y = fieldElement.y
             val distance = field.getElement(x, y).distance
 
-            // 対戦相手のいる位置は評価の対象外にする
-            //if (x == opponentX && y == opponentY && (x - myX).absoluteValue + (y - myY).absoluteValue <= 2) continue
-
             // この場所のスコアと爆弾設置の可否を計算する
             var score = -fieldElement.risk - distance * SCORE_OF_DISTANCE
             var fire = false
@@ -61,7 +77,7 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
                 // この爆弾で破壊できる壁の数
                 val breakCount = fieldIfBombSet.addBomb(Bomb(gameScreen, x * Constants.CHARACTER_SIZE, y * Constants.CHARACTER_SIZE, player.power))
                 // 逃げ場があるか確認する
-                if (fieldIfBombSet.checkIfEscapable(x, y)) {
+                if (fieldIfBombSet.checkIfEscapable(x, y, opponentX, opponentY)) {
                     // 破壊できる壁があればスコア加算
                     if (breakCount > 0) {
                         score += breakCount * SCORE_OF_BREAK_WALL
@@ -71,7 +87,11 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
                     if (!opponentPlayer.isDead) {
                         val opponentStressPlus = calcOpponentStress(fieldIfBombSet, opponentX, opponentY) - opponentStress
                         if (opponentStressPlus > 0) {
-                            score += opponentStressPlus * 10
+                            // スコアに加算する重みの計算
+                            // 「動きたいのに動けない」状況が続くと現在位置に爆弾を置く場合の重みが大きくなる
+                            val weight = AIConstants.OPPONENT_STRESS_WEIGHT +
+                                    if (fieldElement == myElement) opponentStressWeightPlus else 0
+                            score += opponentStressPlus * weight
                             fire = true
                         }
                     }
@@ -111,6 +131,7 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
         }
         val fx = f.x * Constants.CHARACTER_SIZE
         val fy = f.y * Constants.CHARACTER_SIZE
+        previousWantToMode = fx != player.x || fy != player.y
         if (fx > player.x) {
             // 右に移動
             return PlayerOperation.PlayerInput(PlayerOperation.Move.RIGHT, fireFlag)

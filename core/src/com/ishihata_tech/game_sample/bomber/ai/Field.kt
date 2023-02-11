@@ -57,7 +57,7 @@ class Field {
     /**
      * 指定位置からリスクのない場所へ移動できるか確認する
      */
-    fun checkIfEscapable(x: Int, y: Int): Boolean {
+    fun checkIfEscapable(x: Int, y: Int, opponentX: Int, opponentY: Int): Boolean {
         val checked = BooleanArray(GameScreen.MAP_WIDTH * GameScreen.MAP_HEIGHT)
         val searchQueue = ArrayDeque<FieldElement>()
         searchQueue.addLast(getElement(x, y))
@@ -69,9 +69,11 @@ class Field {
             arrayOf(getElement(ex - 1, ey), getElement(ex + 1, ey), getElement(ex, ey - 1), getElement(ex, ey + 1)).forEach {
                 val idx = it.x + it.y * GameScreen.MAP_WIDTH
                 if (!checked[idx] && it.isPassable) {
-                    if (it.risk == 0) return true
-                    searchQueue.addLast(it)
-                    checked[idx] = true
+                    if (it.x != opponentX || it.y != opponentY) {
+                        if (it.risk == 0) return true
+                        searchQueue.addLast(it)
+                        checked[idx] = true
+                    }
                 }
             }
         }
