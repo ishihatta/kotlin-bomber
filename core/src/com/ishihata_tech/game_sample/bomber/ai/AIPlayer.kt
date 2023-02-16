@@ -18,6 +18,8 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
     private var previousWantToMode = false
     // 対戦相手のストレス度に対するスコアの重みにプラスする値
     private var opponentStressWeightPlus = 0
+    // 対戦相手の位置を通過できないと認識するタイマー（1以上だと対戦相手の現在位置を「通過不能」と判断する）
+    private var opponentPositionIsNotPassableTimer = 0
 
     override val playerInput: PlayerOperation.PlayerInput
         get() = operatePlayer()
@@ -108,6 +110,10 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
                 val nextElement = field.getElement(it.first, it.second)
                 // 通れない場所には行けない
                 if (!nextElement.isPassable) return@forEach
+                // 「対戦相手位置を通過不能と認識する」場合は、対戦相手位置は通過不能とする
+                if (opponentPositionIsNotPassableTimer > 0) {
+                    if (opponentX == nextElement.x && opponentY == nextElement.y) return@forEach
+                }
                 // この場所のリスクが高すぎる場合はここには行かない
                 if (nextElement.risk > RISK_OF_BOMB * 9 / 10 && nextElement.risk > fieldElement.risk) return@forEach
                 // この場所にたどり着くまでのコストを計算し、すでにそれより低いコストで移動できる経路が計算済みなら何もしない
@@ -124,6 +130,12 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
         // 移動処理
         // すでに目的地に到着しており、かつ目的が爆弾設置なら爆弾を置く
         val fireFlag = maxScoreFieldElement == myElement && maxScoreFire
+        if (fireFlag) {
+            // 爆弾を設置する場合は「相手位置は通過不能と認識する」タイマーをセットする
+            opponentPositionIsNotPassableTimer = AIConstants.OPPONENT_NOT_PASSABLE_TIMEOUT
+        } else if (opponentPositionIsNotPassableTimer > 0) {
+            opponentPositionIsNotPassableTimer--
+        }
         // 目的地への経路のうち、現在地の次の位置を取得する
         var f = maxScoreFieldElement
         while (f.previousElement != myElement) {

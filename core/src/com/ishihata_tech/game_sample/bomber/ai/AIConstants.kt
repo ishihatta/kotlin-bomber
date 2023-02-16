@@ -13,4 +13,6 @@ object AIConstants {
     const val RISK_OF_BOMB = 1000
     // 対戦相手のストレス度に対するスコアの重み
     const val OPPONENT_STRESS_WEIGHT = 10
+    // 自分が爆弾設置後、対戦相手の現在位置を通過不能とみなす時間（フレーム数）
+    const val OPPONENT_NOT_PASSABLE_TIMEOUT = 60
 }
