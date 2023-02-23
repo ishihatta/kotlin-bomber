@@ -111,9 +111,8 @@ class AIPlayer(private val gameScreen: GameScreen, private val playerNumber: Int
                 // 通れない場所には行けない
                 if (!nextElement.isPassable) return@forEach
                 // 「対戦相手位置を通過不能と認識する」場合は、対戦相手位置は通過不能とする
-                if (opponentPositionIsNotPassableTimer > 0) {
-                    if (opponentX == nextElement.x && opponentY == nextElement.y) return@forEach
-                }
+                if (opponentPositionIsNotPassableTimer > 0 &&
+                    opponentX == nextElement.x && opponentY == nextElement.y) return@forEach
                 // この場所のリスクが高すぎる場合はここには行かない
                 if (nextElement.risk > RISK_OF_BOMB * 9 / 10 && nextElement.risk > fieldElement.risk) return@forEach
                 // この場所にたどり着くまでのコストを計算し、すでにそれより低いコストで移動できる経路が計算済みなら何もしない
