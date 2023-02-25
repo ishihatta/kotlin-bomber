@@ -2,15 +2,25 @@
 Kotlin で書いた簡単な対戦2Dアクションゲームです。Windows, MacOS, Linux 等のデスクトップで動作し、キーボードで操作します。
 
 # ゲームの内容
-二人対戦専用のボン○ーマンです。ルールは以下の通りです。
+二人対戦専用のボン○ーマンです。人間対人間、人間対AI、AI対AIの対戦ができます。ルールは以下の通りです。
 
 * アイテムは火力アップのみ
 * 爆弾は無限に置ける
 * 死んだら負け
 
 # プレイ動画
+## 人間対人間
 
 https://user-images.githubusercontent.com/40629744/210214223-5026a6b1-8405-493b-9c45-cc59f73d4bcb.mp4
+
+## 人間対AI
+赤が人間、青がAIです。
+
+https://user-images.githubusercontent.com/40629744/221346427-0a1db29c-65e6-4ee3-8f9e-02b5c485868a.mp4
+
+## AI対AI
+
+https://user-images.githubusercontent.com/40629744/221346444-5397096b-5f0f-446c-a87d-fa0873ca842c.mp4
 
 # ビルド方法
 
