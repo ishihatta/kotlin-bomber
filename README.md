@@ -28,20 +28,20 @@ https://user-images.githubusercontent.com/40629744/221346444-5397096b-5f0f-446c-
 ./gradlew :desktop:dist
 ```
 
-上記コマンドでビルドされ `desktop/biuld/lib` ディレクトリに `desktop-1.0.jar` ファイルが作成されます。
+上記コマンドでビルドされ `desktop/biuld/lib` ディレクトリに JAR ファイルが作成されます。
 
 # 起動方法
 ## JAR ファイルからの実行
 上記ビルド方法で作成された JAR ファイルは以下のコマンドで実行できます。
 
 ```shell
-java -jar desktop-1.0.jar
+java -jar path-to-JAR-file
 ```
 
 ただし MacOS ではこのコマンドではエラーになります。その場合は以下のコマンドで実行できます。
 
 ```shell
-java -XstartOnFirstThread -jar desktop-1.0.jar
+java -XstartOnFirstThread -jar path-to-JAR-file
 ```
 
 ## Gradle タスクからの実行
